@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English ↔ Kannada Translator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 40px 36px 32px;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      color: #1a202c;
+      margin-bottom: 28px;
+    }
+
+    .direction-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .lang-label {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #2d3748;
+      padding: 8px 20px;
+      border-radius: 999px;
+      background: #ebf4ff;
+      transition: background 0.2s;
+    }
+
+    .swap-btn {
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .swap-btn:hover { background: #357abd; transform: rotate(180deg); }
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      color: #2d3748;
+    }
+
+    textarea:focus { border-color: #4a90e2; }
+
+    #output {
+      background: #f7fafc;
+      color: #2d3748;
+      cursor: default;
+    }
+
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: #718096;
+      margin-bottom: 4px;
+      padding: 0 2px;
+    }
+
+    .translate-btn {
+      display: block;
+      width: 100%;
+      margin: 18px 0 20px;
+      padding: 13px;
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .translate-btn:hover { background: #357abd; }
+    .translate-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    .error { color: #e53e3e; font-size: 0.88rem; text-align: center; margin-top: 8px; }
+
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 0.82rem;
+      color: #4a5568;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: #edf2f7; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>English ↔ Kannada Translator</h1>
+
+  <div class="direction-row">
+    <span class="lang-label" id="src-label">English</span>
+    <button class="swap-btn" id="swapBtn" title="Swap languages">⇄</button>
+    <span class="lang-label" id="tgt-label">Kannada</span>
+  </div>
+
+  <div class="labels">
+    <span id="input-lang-label">English</span>
+    <span id="char-count">0 chars</span>
+  </div>
+  <textarea id="inputText" placeholder="Enter text to translate…" maxlength="1000"></textarea>
+
+  <button class="translate-btn" id="translateBtn">Translate</button>
+
+  <div class="labels">
+    <span id="output-lang-label">Kannada</span>
+  </div>
+  <textarea id="output" readonly placeholder="Translation will appear here…"></textarea>
+
+  <div class="copy-row">
+    <button class="copy-btn" id="copyBtn">Copy</button>
+  </div>
+
+  <p class="error" id="errorMsg"></p>
+</div>
+
+<script>
+  const state = { direction: "en-kn" };
+
+  const inputText   = document.getElementById("inputText");
+  const output      = document.getElementById("output");
+  const translateBtn = document.getElementById("translateBtn");
+  const swapBtn     = document.getElementById("swapBtn");
+  const copyBtn     = document.getElementById("copyBtn");
+  const errorMsg    = document.getElementById("errorMsg");
+  const charCount   = document.getElementById("char-count");
+  const srcLabel    = document.getElementById("src-label");
+  const tgtLabel    = document.getElementById("tgt-label");
+  const inputLangLabel  = document.getElementById("input-lang-label");
+  const outputLangLabel = document.getElementById("output-lang-label");
+
+  const langNames = { en: "English", kn: "Kannada" };
+
+  function updateLabels() {
+    const [src, tgt] = state.direction.split("-");
+    srcLabel.textContent = langNames[src];
+    tgtLabel.textContent = langNames[tgt];
+    inputLangLabel.textContent  = langNames[src];
+    outputLangLabel.textContent = langNames[tgt];
+    inputText.placeholder = `Enter ${langNames[src]} text…`;
+  }
+
+  swapBtn.addEventListener("click", () => {
+    state.direction = state.direction === "en-kn" ? "kn-en" : "en-kn";
+    [inputText.value, output.value] = [output.value, inputText.value];
+    charCount.textContent = `${inputText.value.length} chars`;
+    updateLabels();
+    errorMsg.textContent = "";
+  });
+
+  inputText.addEventListener("input", () => {
+    charCount.textContent = `${inputText.value.length} chars`;
+  });
+
+  translateBtn.addEventListener("click", async () => {
+    const text = inputText.value.trim();
+    if (!text) { errorMsg.textContent = "Please enter some text."; return; }
+    errorMsg.textContent = "";
+    translateBtn.disabled = true;
+    translateBtn.textContent = "Translating…";
+
+    try {
+      const res = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, direction: state.direction })
+      });
+      const data = await res.json();
+      if (data.error) { errorMsg.textContent = data.error; }
+      else { output.value = data.translated; }
+    } catch {
+      errorMsg.textContent = "Network error. Please try again.";
+    } finally {
+      translateBtn.disabled = false;
+      translateBtn.textContent = "Translate";
+    }
+  });
+
+  inputText.addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.ctrlKey) translateBtn.click();
+  });
+
+  copyBtn.addEventListener("click", () => {
+    if (!output.value) return;
+    navigator.clipboard.writeText(output.value).then(() => {
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => copyBtn.textContent = "Copy", 1500);
+    });
+  });
+
+  updateLabels();
+</script>
+</body>
+</html>
