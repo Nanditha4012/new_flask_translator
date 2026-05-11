@@ -14,6 +14,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 24px 16px;
     }
 
     .card {
@@ -22,7 +23,7 @@
       box-shadow: 0 4px 24px rgba(0,0,0,0.10);
       padding: 40px 36px 32px;
       width: 100%;
-      max-width: 680px;
+      max-width: 700px;
     }
 
     h1 {
@@ -47,7 +48,6 @@
       padding: 8px 20px;
       border-radius: 999px;
       background: #ebf4ff;
-      transition: background 0.2s;
     }
 
     .swap-btn {
@@ -64,15 +64,19 @@
       align-items: center;
       justify-content: center;
     }
-
     .swap-btn:hover { background: #357abd; transform: rotate(180deg); }
+
+    /* ── textarea wrapper ── */
+    .textarea-wrap {
+      position: relative;
+    }
 
     textarea {
       width: 100%;
       height: 130px;
       border: 1.5px solid #e2e8f0;
       border-radius: 10px;
-      padding: 14px 16px;
+      padding: 14px 50px 14px 16px;
       font-size: 1rem;
       font-family: inherit;
       resize: vertical;
@@ -80,7 +84,6 @@
       transition: border-color 0.2s;
       color: #2d3748;
     }
-
     textarea:focus { border-color: #4a90e2; }
 
     #output {
@@ -89,9 +92,38 @@
       cursor: default;
     }
 
+    /* ── mic / speaker icon buttons inside textarea ── */
+    .icon-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.3rem;
+      line-height: 1;
+      padding: 4px;
+      border-radius: 6px;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .icon-btn:hover { background: #e2e8f0; }
+
+    .icon-btn.recording {
+      animation: pulse 0.9s infinite;
+      color: #e53e3e;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* ── row labels ── */
     .labels {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-size: 0.78rem;
       color: #718096;
       margin-bottom: 4px;
@@ -112,15 +144,13 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-
     .translate-btn:hover { background: #357abd; }
     .translate-btn:disabled { background: #a0aec0; cursor: not-allowed; }
 
-    .error { color: #e53e3e; font-size: 0.88rem; text-align: center; margin-top: 8px; }
-
-    .copy-row {
+    .action-row {
       display: flex;
       justify-content: flex-end;
+      gap: 8px;
       margin-top: 6px;
     }
 
@@ -134,8 +164,16 @@
       cursor: pointer;
       transition: background 0.15s;
     }
-
     .copy-btn:hover { background: #edf2f7; }
+
+    .speech-support-note {
+      font-size: 0.76rem;
+      color: #a0aec0;
+      text-align: center;
+      margin-top: 14px;
+    }
+
+    .error { color: #e53e3e; font-size: 0.88rem; text-align: center; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -148,64 +186,141 @@
     <span class="lang-label" id="tgt-label">Kannada</span>
   </div>
 
+  <!-- Input -->
   <div class="labels">
     <span id="input-lang-label">English</span>
     <span id="char-count">0 chars</span>
   </div>
-  <textarea id="inputText" placeholder="Enter text to translate…" maxlength="1000"></textarea>
+  <div class="textarea-wrap">
+    <textarea id="inputText" placeholder="Enter text or use 🎤 to speak…" maxlength="1000"></textarea>
+    <button class="icon-btn" id="micBtn" title="Speak to translate">🎤</button>
+  </div>
 
   <button class="translate-btn" id="translateBtn">Translate</button>
 
+  <!-- Output -->
   <div class="labels">
     <span id="output-lang-label">Kannada</span>
   </div>
-  <textarea id="output" readonly placeholder="Translation will appear here…"></textarea>
+  <div class="textarea-wrap">
+    <textarea id="output" readonly placeholder="Translation will appear here…"></textarea>
+    <button class="icon-btn" id="speakBtn" title="Listen to translation">🔊</button>
+  </div>
 
-  <div class="copy-row">
+  <div class="action-row">
     <button class="copy-btn" id="copyBtn">Copy</button>
   </div>
 
   <p class="error" id="errorMsg"></p>
+  <p class="speech-support-note" id="speechNote"></p>
 </div>
 
 <script>
-  const state = { direction: "en-kn" };
+  const state = { direction: "en-kn", isRecording: false, isSpeaking: false };
 
-  const inputText   = document.getElementById("inputText");
-  const output      = document.getElementById("output");
-  const translateBtn = document.getElementById("translateBtn");
-  const swapBtn     = document.getElementById("swapBtn");
-  const copyBtn     = document.getElementById("copyBtn");
-  const errorMsg    = document.getElementById("errorMsg");
-  const charCount   = document.getElementById("char-count");
-  const srcLabel    = document.getElementById("src-label");
-  const tgtLabel    = document.getElementById("tgt-label");
+  const inputText       = document.getElementById("inputText");
+  const output          = document.getElementById("output");
+  const translateBtn    = document.getElementById("translateBtn");
+  const swapBtn         = document.getElementById("swapBtn");
+  const copyBtn         = document.getElementById("copyBtn");
+  const micBtn          = document.getElementById("micBtn");
+  const speakBtn        = document.getElementById("speakBtn");
+  const errorMsg        = document.getElementById("errorMsg");
+  const charCount       = document.getElementById("char-count");
+  const srcLabel        = document.getElementById("src-label");
+  const tgtLabel        = document.getElementById("tgt-label");
   const inputLangLabel  = document.getElementById("input-lang-label");
   const outputLangLabel = document.getElementById("output-lang-label");
+  const speechNote      = document.getElementById("speechNote");
 
   const langNames = { en: "English", kn: "Kannada" };
+  const speechLang = { en: "en-US", kn: "kn-IN" };
 
-  function updateLabels() {
-    const [src, tgt] = state.direction.split("-");
-    srcLabel.textContent = langNames[src];
-    tgtLabel.textContent = langNames[tgt];
-    inputLangLabel.textContent  = langNames[src];
-    outputLangLabel.textContent = langNames[tgt];
-    inputText.placeholder = `Enter ${langNames[src]} text…`;
+  // ── Speech Recognition (STT) ──────────────────────────────────────────────
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results)
+        .map(r => r[0].transcript).join("");
+      inputText.value = transcript;
+      charCount.textContent = `${transcript.length} chars`;
+    };
+
+    recognition.onend = () => {
+      state.isRecording = false;
+      micBtn.classList.remove("recording");
+      micBtn.title = "Speak to translate";
+      if (inputText.value.trim()) translateBtn.click();
+    };
+
+    recognition.onerror = (e) => {
+      state.isRecording = false;
+      micBtn.classList.remove("recording");
+      if (e.error !== "no-speech") {
+        errorMsg.textContent = `Microphone error: ${e.error}`;
+      }
+    };
+  } else {
+    micBtn.disabled = true;
+    micBtn.style.opacity = "0.35";
+    micBtn.title = "Speech recognition not supported in this browser";
+    speechNote.textContent = "⚠ Microphone input requires Chrome or Edge.";
   }
 
-  swapBtn.addEventListener("click", () => {
-    state.direction = state.direction === "en-kn" ? "kn-en" : "en-kn";
-    [inputText.value, output.value] = [output.value, inputText.value];
-    charCount.textContent = `${inputText.value.length} chars`;
-    updateLabels();
+  micBtn.addEventListener("click", () => {
+    if (!recognition) return;
     errorMsg.textContent = "";
+
+    if (state.isRecording) {
+      recognition.stop();
+      return;
+    }
+
+    const [src] = state.direction.split("-");
+    recognition.lang = speechLang[src];
+    recognition.start();
+    state.isRecording = true;
+    micBtn.classList.add("recording");
+    micBtn.title = "Recording… click to stop";
   });
 
-  inputText.addEventListener("input", () => {
-    charCount.textContent = `${inputText.value.length} chars`;
+  // ── Text-to-Speech (TTS) ──────────────────────────────────────────────────
+  speakBtn.addEventListener("click", () => {
+    const text = output.value.trim();
+    if (!text) return;
+
+    if (state.isSpeaking) {
+      speechSynthesis.cancel();
+      state.isSpeaking = false;
+      speakBtn.textContent = "🔊";
+      return;
+    }
+
+    const [, tgt] = state.direction.split("-");
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = speechLang[tgt];
+
+    utterance.onstart = () => {
+      state.isSpeaking = true;
+      speakBtn.textContent = "⏹";
+      speakBtn.title = "Stop speaking";
+    };
+    utterance.onend = utterance.onerror = () => {
+      state.isSpeaking = false;
+      speakBtn.textContent = "🔊";
+      speakBtn.title = "Listen to translation";
+    };
+
+    speechSynthesis.speak(utterance);
   });
 
+  // ── Translation ───────────────────────────────────────────────────────────
   translateBtn.addEventListener("click", async () => {
     const text = inputText.value.trim();
     if (!text) { errorMsg.textContent = "Please enter some text."; return; }
@@ -228,6 +343,33 @@
       translateBtn.disabled = false;
       translateBtn.textContent = "Translate";
     }
+  });
+
+  // ── Swap ──────────────────────────────────────────────────────────────────
+  swapBtn.addEventListener("click", () => {
+    if (state.isRecording) recognition.stop();
+    if (state.isSpeaking) speechSynthesis.cancel();
+
+    state.direction = state.direction === "en-kn" ? "kn-en" : "en-kn";
+    [inputText.value, output.value] = [output.value, inputText.value];
+    charCount.textContent = `${inputText.value.length} chars`;
+    updateLabels();
+    errorMsg.textContent = "";
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function updateLabels() {
+    const [src, tgt] = state.direction.split("-");
+    srcLabel.textContent = langNames[src];
+    tgtLabel.textContent = langNames[tgt];
+    inputLangLabel.textContent  = langNames[src];
+    outputLangLabel.textContent = langNames[tgt];
+    const srcName = langNames[src];
+    inputText.placeholder = `Enter ${srcName} text or use 🎤 to speak…`;
+  }
+
+  inputText.addEventListener("input", () => {
+    charCount.textContent = `${inputText.value.length} chars`;
   });
 
   inputText.addEventListener("keydown", e => {
