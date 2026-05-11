@@ -174,6 +174,294 @@
     }
 
     .error { color: #e53e3e; font-size: 0.88rem; text-align: center; margin-top: 8px; }
+
+    /* ── Audio-to-Audio mode ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 32px 0 20px;
+      color: #a0aec0;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+
+    .audio-section {
+      background: linear-gradient(145deg, #1a202c 0%, #2d3748 100%);
+      border-radius: 18px;
+      padding: 28px 24px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .audio-section::before {
+      content: "";
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(74,144,226,0.08);
+      pointer-events: none;
+    }
+    .audio-section::after {
+      content: "";
+      position: absolute;
+      bottom: -30px; left: -30px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: rgba(56,161,105,0.07);
+      pointer-events: none;
+    }
+
+    .audio-header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .audio-header h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.01em;
+      margin-bottom: 5px;
+    }
+    .audio-header .subtitle {
+      font-size: 0.78rem;
+      color: #718096;
+    }
+
+    /* step flow */
+    .audio-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      opacity: 0.35;
+      transition: opacity 0.3s;
+    }
+    .step.active { opacity: 1; }
+    .step-icon {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .step.active .step-icon {
+      background: rgba(74,144,226,0.25);
+      border-color: #4a90e2;
+    }
+    .step.active.speak-step .step-icon  { background: rgba(229,62,62,0.25);  border-color: #e53e3e; }
+    .step.active.play-step .step-icon   { background: rgba(56,161,105,0.25); border-color: #38a169; }
+    .step-icon svg { width: 16px; height: 16px; }
+    .step-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .step.active .step-label { color: #fff; }
+    .step-arrow {
+      width: 28px;
+      height: 1px;
+      background: rgba(255,255,255,0.12);
+      margin: 0 2px;
+      flex-shrink: 0;
+      position: relative;
+      top: -10px;
+    }
+
+    /* mic button + waveform area */
+    .audio-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mic-ring-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100px;
+      height: 100px;
+    }
+    .mic-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .mic-ring-outer {
+      inset: -10px;
+      border-color: rgba(74,144,226,0.15);
+    }
+    .mic-ring-outer.active-rec  { border-color: rgba(229,62,62,0.3);  animation: ring-spin 2.5s linear infinite; }
+    .mic-ring-outer.active-play { border-color: rgba(56,161,105,0.3); animation: ring-spin 2.5s linear infinite; }
+    @keyframes ring-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .big-mic-btn {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4a90e2, #357abd);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 24px rgba(74,144,226,0.45), 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.15s, box-shadow 0.2s;
+      z-index: 2;
+    }
+    .big-mic-btn:hover { transform: scale(1.05); box-shadow: 0 8px 28px rgba(74,144,226,0.55), 0 2px 6px rgba(0,0,0,0.3); }
+    .big-mic-btn:active { transform: scale(0.97); }
+    .big-mic-btn svg { width: 28px; height: 28px; fill: #fff; transition: transform 0.2s; }
+
+    .big-mic-btn.recording {
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      box-shadow: 0 6px 24px rgba(229,62,62,0.5), 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .big-mic-btn.speaking {
+      background: linear-gradient(135deg, #38a169, #276749);
+      box-shadow: 0 6px 24px rgba(56,161,105,0.5), 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    /* waveform bars */
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 28px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .waveform.visible { opacity: 1; }
+    .waveform .bar {
+      width: 3px;
+      border-radius: 2px;
+      background: #4a90e2;
+      animation: none;
+      height: 4px;
+      transition: background 0.3s;
+    }
+    .waveform.recording .bar { background: #e53e3e; animation: wave var(--d, 0.8s) ease-in-out infinite alternate; }
+    .waveform.speaking  .bar { background: #38a169; animation: wave var(--d, 0.8s) ease-in-out infinite alternate; }
+
+    .waveform .bar:nth-child(1)  { --d: 0.55s; }
+    .waveform .bar:nth-child(2)  { --d: 0.70s; }
+    .waveform .bar:nth-child(3)  { --d: 0.45s; }
+    .waveform .bar:nth-child(4)  { --d: 0.80s; }
+    .waveform .bar:nth-child(5)  { --d: 0.60s; }
+    .waveform .bar:nth-child(6)  { --d: 0.50s; }
+    .waveform .bar:nth-child(7)  { --d: 0.75s; }
+    .waveform .bar:nth-child(8)  { --d: 0.65s; }
+    .waveform .bar:nth-child(9)  { --d: 0.42s; }
+    .waveform .bar:nth-child(10) { --d: 0.88s; }
+
+    @keyframes wave {
+      from { height: 4px; }
+      to   { height: 22px; }
+    }
+
+    .audio-status {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #a0aec0;
+      text-align: center;
+      min-height: 1.3em;
+      letter-spacing: 0.01em;
+      transition: color 0.3s;
+    }
+    .audio-status.active-rec  { color: #fc8181; }
+    .audio-status.active-play { color: #68d391; }
+    .audio-status.active-proc { color: #90cdf4; }
+
+    /* transcript cards */
+    .audio-transcript-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .transcript-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+      padding: 12px 14px;
+      min-height: 76px;
+    }
+    .transcript-box .box-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #4a90e2;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 7px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .transcript-box.tgt-box .box-label { color: #68d391; }
+    .transcript-box .box-label svg { width: 11px; height: 11px; flex-shrink: 0; }
+    .transcript-box .box-text {
+      font-size: 0.875rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .transcript-box .box-text.empty { color: rgba(255,255,255,0.2); font-style: italic; }
+
+    /* divider arrow between transcript boxes */
+    .transcript-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.2);
+      font-size: 1rem;
+      align-self: center;
+    }
+
+    .audio-stop-btn {
+      background: rgba(229,62,62,0.12);
+      border: 1px solid rgba(229,62,62,0.35);
+      color: #fc8181;
+      border-radius: 8px;
+      padding: 6px 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: none;
+      transition: background 0.15s;
+    }
+    .audio-stop-btn.visible { display: inline-block; }
+    .audio-stop-btn:hover { background: rgba(229,62,62,0.22); }
   </style>
 </head>
 <body>
@@ -213,6 +501,102 @@
 
   <p class="error" id="errorMsg"></p>
   <p class="speech-support-note" id="speechNote"></p>
+
+  <div class="divider">Audio to Audio</div>
+
+  <div class="audio-section">
+    <div class="audio-header">
+      <h2>Voice Translator</h2>
+      <p class="subtitle">Speak &rarr; auto-translate &rarr; hear the result instantly</p>
+    </div>
+
+    <!-- step indicators -->
+    <div class="audio-steps">
+      <div class="step speak-step" id="step-speak">
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <span class="step-label">Speak</span>
+      </div>
+      <div class="step-arrow"></div>
+      <div class="step" id="step-translate">
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <span class="step-label">Translate</span>
+      </div>
+      <div class="step-arrow"></div>
+      <div class="step play-step" id="step-play">
+        <div class="step-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </div>
+        <span class="step-label">Play</span>
+      </div>
+    </div>
+
+    <div class="audio-controls">
+      <!-- animated ring + mic button -->
+      <div class="mic-ring-wrap">
+        <div class="mic-ring mic-ring-outer" id="micRingOuter"></div>
+        <button class="big-mic-btn" id="audioMicBtn" title="Tap to speak">
+          <!-- mic icon (default) -->
+          <svg id="micIcon" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="19" x2="12" y2="23" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <line x1="8" y1="23" x2="16" y2="23" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <!-- speaker icon (speaking state) -->
+          <svg id="speakIcon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="white" stroke="none"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- waveform bars -->
+      <div class="waveform" id="audioWaveform">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+
+      <p class="audio-status" id="audioStatus">Tap the microphone to begin</p>
+      <button class="audio-stop-btn" id="audioStopBtn">&#9632; Stop</button>
+
+      <!-- transcript row -->
+      <div class="audio-transcript-row">
+        <div class="transcript-box">
+          <div class="box-label" id="audioSrcLangLabel">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/></svg>
+            English — you said
+          </div>
+          <div class="box-text empty" id="audioOriginal">Waiting for speech…</div>
+        </div>
+        <div class="transcript-box tgt-box">
+          <div class="box-label" id="audioTgtLangLabel">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
+            Kannada — translation
+          </div>
+          <div class="box-text empty" id="audioTranslated">Translation appears here…</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -385,6 +769,141 @@
   });
 
   updateLabels();
+
+  // ── Audio-to-Audio mode ───────────────────────────────────────────────────
+  const audioMicBtn       = document.getElementById("audioMicBtn");
+  const audioStopBtn      = document.getElementById("audioStopBtn");
+  const audioStatus       = document.getElementById("audioStatus");
+  const audioOriginal     = document.getElementById("audioOriginal");
+  const audioTranslated   = document.getElementById("audioTranslated");
+  const audioSrcLangLabel = document.getElementById("audioSrcLangLabel");
+  const audioTgtLangLabel = document.getElementById("audioTgtLangLabel");
+  const audioWaveform     = document.getElementById("audioWaveform");
+  const micRingOuter      = document.getElementById("micRingOuter");
+  const micIcon           = document.getElementById("micIcon");
+  const speakIcon         = document.getElementById("speakIcon");
+  const stepSpeak         = document.getElementById("step-speak");
+  const stepTranslate     = document.getElementById("step-translate");
+  const stepPlay          = document.getElementById("step-play");
+
+  const audioState = { phase: "idle" };
+  let audioRecognition = null;
+
+  function updateAudioLabels() {
+    const [src, tgt] = state.direction.split("-");
+    audioSrcLangLabel.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/></svg>${langNames[src]} — you said`;
+    audioTgtLangLabel.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>${langNames[tgt]} — translation`;
+  }
+  updateAudioLabels();
+  swapBtn.addEventListener("click", updateAudioLabels);
+
+  function setAudioPhase(phase, statusText) {
+    audioState.phase = phase;
+
+    // status text + color
+    audioStatus.textContent = statusText;
+    audioStatus.className = "audio-status";
+    if (phase === "recording")   audioStatus.classList.add("active-rec");
+    if (phase === "speaking")    audioStatus.classList.add("active-play");
+    if (phase === "translating") audioStatus.classList.add("active-proc");
+
+    // button style + icon swap
+    audioMicBtn.classList.toggle("recording", phase === "recording");
+    audioMicBtn.classList.toggle("speaking",  phase === "speaking");
+    micIcon.style.display   = phase === "speaking" ? "none"  : "";
+    speakIcon.style.display = phase === "speaking" ? ""      : "none";
+
+    // ring
+    micRingOuter.className = "mic-ring mic-ring-outer";
+    if (phase === "recording")   micRingOuter.classList.add("active-rec");
+    if (phase === "speaking")    micRingOuter.classList.add("active-play");
+
+    // waveform
+    audioWaveform.className = "waveform";
+    if (phase === "recording" || phase === "speaking") {
+      audioWaveform.classList.add("visible");
+      audioWaveform.classList.add(phase === "recording" ? "recording" : "speaking");
+    }
+
+    // step highlights
+    stepSpeak.classList.toggle("active",     phase === "recording");
+    stepTranslate.classList.toggle("active", phase === "translating");
+    stepPlay.classList.toggle("active",      phase === "speaking");
+
+    // stop button
+    audioStopBtn.classList.toggle("visible", phase === "recording" || phase === "speaking");
+  }
+
+  async function runAudioTranslation(spokenText) {
+    const [, tgt] = state.direction.split("-");
+    setAudioPhase("translating", "Translating…");
+    audioOriginal.textContent = spokenText;
+    audioOriginal.classList.remove("empty");
+    audioTranslated.textContent = "…";
+    audioTranslated.classList.remove("empty");
+
+    try {
+      const res = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: spokenText, direction: state.direction })
+      });
+      const data = await res.json();
+      if (data.error) {
+        audioTranslated.textContent = data.error;
+        setAudioPhase("idle", "Error — please try again.");
+        return;
+      }
+
+      const translatedText = data.translated;
+      audioTranslated.textContent = translatedText;
+
+      setAudioPhase("speaking", "Playing translation…");
+      const utterance = new SpeechSynthesisUtterance(translatedText);
+      utterance.lang = speechLang[tgt];
+      utterance.onend = utterance.onerror = () => setAudioPhase("idle", "Done — tap to translate again");
+      speechSynthesis.speak(utterance);
+    } catch {
+      audioTranslated.textContent = "Network error.";
+      setAudioPhase("idle", "Network error — please try again.");
+    }
+  }
+
+  audioMicBtn.addEventListener("click", () => {
+    if (audioState.phase === "recording") { audioRecognition && audioRecognition.stop(); return; }
+    if (audioState.phase === "speaking")  { speechSynthesis.cancel(); setAudioPhase("idle", "Stopped — tap to go again."); return; }
+    if (audioState.phase === "translating") return;
+
+    if (!SpeechRecognition) {
+      setAudioPhase("idle", "Speech recognition not supported — use Chrome or Edge.");
+      return;
+    }
+
+    const [src] = state.direction.split("-");
+    audioRecognition = new SpeechRecognition();
+    audioRecognition.lang = speechLang[src];
+    audioRecognition.interimResults = false;
+    audioRecognition.continuous = false;
+
+    audioRecognition.onresult = (e) => runAudioTranslation(e.results[0][0].transcript);
+
+    audioRecognition.onerror = (e) => {
+      setAudioPhase("idle", e.error === "no-speech" ? "No speech detected — try again." : `Mic error: ${e.error}`);
+    };
+
+    audioRecognition.onend = () => {
+      if (audioState.phase === "recording") setAudioPhase("idle", "No speech detected — try again.");
+    };
+
+    audioRecognition.start();
+    setAudioPhase("recording", `Listening in ${langNames[src]}… speak now`);
+  });
+
+  audioStopBtn.addEventListener("click", () => {
+    if (audioState.phase === "recording") audioRecognition && audioRecognition.stop();
+    if (audioState.phase === "speaking")  speechSynthesis.cancel();
+    setAudioPhase("idle", "Stopped.");
+  });
 </script>
 </body>
 </html>
